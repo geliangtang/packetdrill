@@ -1,0 +1,25 @@
+// Simplest possible test of open() and then sendfile().
+// We write some zeroes into a file (since packetdrill expects payloads
+// to be all zeroes) and then open() the file, then use sendfile()
+// and verify that the correct number of zeroes goes out.
+
+`../../common/defaults.sh
+/bin/rm -f /tmp/testfile
+/bin/dd bs=1 count=5 if=/dev/zero of=/tmp/testfile status=none
+`
+
+// Initialize connection
+    0 socket(..., SOCK_STREAM, IPPROTO_MPTCP) = 3
+   +0 setsockopt(3, SOL_SOCKET, SO_REUSEADDR, [1], 4) = 0
+   +0 bind(3, ..., ...) = 0
+   +0 listen(3, 1) = 0
+
+   +0   <  addr[caddr0] > addr[saddr0]  S   0:0(0)         win 65535  <mss 1460, sackOK, TS val 4074410674 ecr 0,          nop, wscale 8, mpcapable v1 flags[flag_h] nokey>
+   +0   >                               S.  0:0(0)  ack 1             <mss 1460, sackOK, TS val 4074410674 ecr 4074410674, nop, wscale 8, mpcapable v1 flags[flag_h] key[skey]>
+   +0.1 <                                .  1:1(0)  ack 1  win 256    <nop, nop,         TS val 4074410674 ecr 4074410674,                mpcapable v1 flags[flag_h] key[ckey=2, skey]>
+
+   +0 accept(3, ..., ...) = 4
+
+   +0 open("/tmp/testfile", O_RDONLY) = 5
+   +0 sendfile(4, 5, [0], 5) = 5
+   +0 > P. 1:6(5) ack 1 win 1053 <nop,nop,TS val 2292846772 ecr 4074410674,dss dack4=1 dsn8=1 ssn=1 dll=5 nocs, nop, nop>
